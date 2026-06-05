@@ -1,0 +1,24 @@
+{
+  "name": "cork-connoisseur-vinebound-rescue",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Cork Connoisseur: Vinebound Rescue - a mobile-first 2D side-scrolling platformer built with Next.js + Phaser 3.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "next": "14.2.5",
+    "phaser": "^3.80.1",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "20.14.10",
+    "@types/react": "18.3.3",
+    "@types/react-dom": "18.3.0",
+    "typescript": "5.5.3"
+  }
+}
