@@ -157,8 +157,11 @@ body {
    Game page — full viewport, centered canvas
    ---------------------------------------------------------------- */
 .game-page {
+  position: fixed;
+  inset: 0;
   width: 100vw;
   height: 100svh;
+  height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
