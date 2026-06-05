@@ -29,7 +29,7 @@ export default class VineSnapper extends Enemy {
   private enterHidden() {
     this.vineState = 'hidden';
     this.stateTimer = Phaser.Math.Between(900, 1600);
-    this.setScale(0.5, 0.04);
+    this.setScale(0.2556, 0.0205);
     (this.body as Phaser.Physics.Arcade.Body).enable = false;
     this.setVisible(true);
     this.clearTint();
@@ -45,10 +45,10 @@ export default class VineSnapper extends Enemy {
     this.vineState = 'up';
     this.stateTimer = 1200;
     this.clearTint();
-    this.scene.tweens.add({ targets: this, scaleY: 0.5, duration: 120 });
+    this.scene.tweens.add({ targets: this, scaleY: 0.2556, duration: 120 });
     const body = this.body as Phaser.Physics.Arcade.Body;
     body.enable = true;
-    body.setSize(40, 80).setOffset(14, 12);
+    body.setSize(78, 157).setOffset(41, 23);
     this.scene.time.delayedCall(20, () => {
       (this.body as Phaser.Physics.Arcade.Body).reset(this.x, this.restY - 40);
     });
@@ -75,7 +75,7 @@ export default class VineSnapper extends Enemy {
         if (this.stateTimer <= 0) {
           this.scene.tweens.add({
             targets: this,
-            scaleY: 0.04,
+            scaleY: 0.0205,
             duration: 140,
             onComplete: () => this.enterHidden(),
           });

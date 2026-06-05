@@ -21,7 +21,7 @@ export default class MenuScene extends Phaser.Scene {
       const grape = this.add
         .image(Phaser.Math.Between(20, GAME_WIDTH - 20), Phaser.Math.Between(120, GAME_HEIGHT - 120), 'sour_grape')
         .setAlpha(0.5)
-        .setScale(0.4);
+        .setScale(0.17);
       this.tweens.add({
         targets: grape,
         y: grape.y - 20,
@@ -46,7 +46,7 @@ export default class MenuScene extends Phaser.Scene {
       .setOrigin(0.5);
 
     // Cork Connoisseur portrait
-    this.add.image(GAME_WIDTH / 2, 400, 'player_idle').setScale(1.2);
+    this.add.image(GAME_WIDTH / 2, 400, 'player_idle').setScale(0.45);
 
     this.button(GAME_WIDTH / 2, 500, 'START GAME', 0x4f8f3a, () => {
       resetGameState();

@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import Enemy from './Enemy';
+import { fitSprite, DISPLAY_H } from '../config/fit';
 
 /** Sour Grape — basic enemy that hops toward the player. Stomp or cork it. */
 export default class SourGrape extends Enemy {
@@ -11,7 +12,7 @@ export default class SourGrape extends Enemy {
     this.canStomp = true;
     this.corkKillable = true;
     const body = this.body as Phaser.Physics.Arcade.Body;
-    this.setScale(0.5); body.setSize(48, 48).setOffset(12, 18);
+    fitSprite(this, DISPLAY_H.sour_grape, 24, 24, 'bottom');
     body.setBounce(0, 0);
     body.setCollideWorldBounds(false);
   }

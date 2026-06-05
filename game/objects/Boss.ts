@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { COLORS } from '../config/constants';
 import { audio } from '../config/audio';
+import { fitSprite, DISPLAY_H } from '../config/fit';
 
 export type BossPhase = 1 | 2 | 3 | 4;
 
@@ -35,7 +36,7 @@ export default class Boss extends Phaser.Physics.Arcade.Sprite {
     const body = this.body as Phaser.Physics.Arcade.Body;
     body.setAllowGravity(false);
     body.setImmovable(true);
-    this.setScale(0.5); body.setSize(120, 180).setOffset(36, 60);
+    fitSprite(this, DISPLAY_H.boss, 60, 90, 'bottom');
 
     // gentle hover + drift so it's a moving target
     scene.tweens.add({
@@ -57,6 +58,8 @@ export default class Boss extends Phaser.Physics.Arcade.Sprite {
   }
 
   /** Take a cork hit. */
+  refit() { fitSprite(this, DISPLAY_H.boss, 60, 90, "bottom"); }
+
   hit() {
     if (this.dead) return;
     audio.sfx("bosshit");

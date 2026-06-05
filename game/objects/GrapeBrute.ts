@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import Enemy from './Enemy';
+import { fitSprite, DISPLAY_H } from '../config/fit';
 
 /**
  * Grape Cluster Brute — a heavy mini-boss. Patrols slowly, then charges the
@@ -23,7 +24,7 @@ export default class GrapeBrute extends Enemy {
     this.minX = x - range;
     this.maxX = x + range;
     const body = this.body as Phaser.Physics.Arcade.Body;
-    this.setScale(0.5); body.setSize(72, 80).setOffset(10, 12);
+    fitSprite(this, DISPLAY_H.grape_brute, 36, 40, 'bottom');
     body.setAllowGravity(true);
   }
 

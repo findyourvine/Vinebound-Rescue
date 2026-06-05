@@ -1,12 +1,17 @@
 import Phaser from 'phaser';
 import { input } from '../config/inputState';
 import * as C from '../config/constants';
+import { fitSprite, DISPLAY_H } from '../config/fit';
+
+const PLAYER_BODY_W = 18;
+const PLAYER_BODY_H = 42;
 
 /**
  * The Cork Connoisseur. Reads the shared `input` state each frame and handles
  * movement, jumping, dashing, cork-shooting and taking damage. Modern platformer
  * feel: coyote time, jump buffering, variable jump height, fast-fall and a dash
- * that grants brief i-frames (a real dodge). Picks a pose texture every frame.
+ * that grants brief i-frames (a real dodge). Picks a pose texture every frame and
+ * refits it (the regenerated art frames vary in size) so feet stay on the floor.
  */
 export default class Player extends Phaser.Physics.Arcade.Sprite {
   facing = 1;                 // 1 = right, -1 = left
@@ -16,13 +21,11 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
   dashInvulnUntil = 0;
 
   // ---- power-up state ----
-  shielded = false;           // Red Blend Shield: blocks the next hit
-  speedBoostUntil = 0;        // Sparkling Boost: faster move + higher jump
-  rapidUntil = 0;             // Cork Cannon: rapid cork fire
+  shielded = false;
+  speedBoostUntil = 0;
+  rapidUntil = 0;
 
   // ---- jump-feel state ----
-  baseScaleX = 1;
-  baseScaleY = 1;
   private lastGroundedAt = -99999;
   private jumpBufferedUntil = 0;
   private jumpCutApplied = true;
@@ -32,13 +35,12 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
   private dashTimer = 0;
   private dashCooldown = 0;
   private corkCooldown = 0;
-  private corkPoseTimer = 0;  // keeps the cork-shot pose up briefly after firing
+  private corkPoseTimer = 0;
   private runFrameTimer = 0;
   private runFrame = false;
+  private pose = 'player_idle';
 
-  /** Set by the scene so the player can spawn cork projectiles. */
   projectiles!: Phaser.Physics.Arcade.Group;
-  /** Feedback hooks the scene wires to audio + juice. */
   onCork?: () => void;
   onHurt?: (health: number) => void;
   onShieldBreak?: () => void;
@@ -50,18 +52,20 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     super(scene, x, y, 'player_idle');
     scene.add.existing(this);
     scene.physics.add.existing(this);
-    this.setScale(0.5);
     this.setDepth(10);
     this.setCollideWorldBounds(true);
-    const body = this.body as Phaser.Physics.Arcade.Body;
-    body.setSize(36, 84).setOffset(32, 24);
-    body.setMaxVelocity(C.DASH_SPEED, C.MAX_FALL_SPEED);
-    // remember authored scale so squash/stretch is relative (survives art rescaling)
-    this.baseScaleX = this.scaleX;
-    this.baseScaleY = this.scaleY;
+    fitSprite(this, DISPLAY_H.player, PLAYER_BODY_W, PLAYER_BODY_H, 'bottom');
+    (this.body as Phaser.Physics.Arcade.Body).setMaxVelocity(C.DASH_SPEED, C.MAX_FALL_SPEED);
   }
 
-  /** Whether the player is standing on something. */
+  /** Switch pose texture only when it changes, refitting size + body each time. */
+  private setPose(key: string) {
+    if (this.pose === key) return;
+    this.pose = key;
+    this.setTexture(key);
+    fitSprite(this, DISPLAY_H.player, PLAYER_BODY_W, PLAYER_BODY_H, 'bottom');
+  }
+
   get onGround(): boolean {
     const body = this.body as Phaser.Physics.Arcade.Body;
     return body.blocked.down || body.touching.down;
@@ -81,7 +85,7 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     const grounded = this.onGround;
     if (grounded) this.lastGroundedAt = time;
 
-    // ---- Dash (overrides normal movement while active) ----
+    // ---- Dash ----
     if (this.isDashing) {
       this.dashTimer -= delta;
       body.setVelocityX(this.facing * C.DASH_SPEED);
@@ -90,21 +94,20 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         this.clearTint();
       }
     } else {
-      // ---- Horizontal movement ----
       let vx = 0;
       if (input.left) { vx = -moveSpeed; this.facing = -1; }
       else if (input.right) { vx = moveSpeed; this.facing = 1; }
       body.setVelocityX(vx);
       this.setFlipX(this.facing < 0);
 
-      // start a dash?
       if (input.dashQueued && this.dashCooldown <= 0) {
         this.isDashing = true;
         this.dashTimer = C.DASH_DURATION_MS;
         this.dashCooldown = C.DASH_COOLDOWN_MS;
         this.dashInvulnUntil = time + C.DASH_IFRAME_MS;
         this.setTint(0xffe08a);
-        body.setVelocityY(Math.min(body.velocity.y, 0)); // little float
+        // dash stays horizontal: cancel any downward velocity but DON'T launch up
+        if (body.velocity.y > 0) body.setVelocityY(0);
         this.onDash?.();
       }
     }
@@ -115,28 +118,24 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     if (!this.isDashing && time <= this.jumpBufferedUntil && (grounded || canCoyote)) {
       body.setVelocityY(jumpV);
       this.jumpBufferedUntil = 0;
-      this.lastGroundedAt = -99999; // consume coyote so we can't double-jump
+      this.lastGroundedAt = -99999;
       this.jumpCutApplied = false;
-      this.squash(this.baseScaleX * 0.82, this.baseScaleY * 1.18);
       this.onJump?.();
     }
 
-    // ---- Variable jump height: release early → cut the rise once ----
+    // ---- Variable jump height ----
     if (!input.jumpHeld && !this.jumpCutApplied && body.velocity.y < 0) {
       body.setVelocityY(body.velocity.y * C.JUMP_CUT_MULT);
       this.jumpCutApplied = true;
     }
 
-    // ---- Fast fall: heavier gravity on the way down ----
+    // ---- Fast fall ----
     body.setGravityY(body.velocity.y > 0 ? (C.FALL_GRAVITY_MULT - 1) * C.GRAVITY : 0);
 
-    // ---- Landing detection (dust + sfx via scene) ----
+    // ---- Landing detection ----
     if (grounded && !this.wasOnGround) {
       const impact = this.prevVelY;
-      if (impact > 250) {
-        this.squash(this.baseScaleX * 1.18, this.baseScaleY * 0.82);
-        this.onLand?.(impact);
-      }
+      if (impact > 250) this.onLand?.(impact);
     }
     this.wasOnGround = grounded;
     this.prevVelY = body.velocity.y;
@@ -148,30 +147,29 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
       this.corkPoseTimer = 200;
     }
 
-    // consume one-shot inputs so a tap == a single action
     input.jumpQueued = false;
     input.dashQueued = false;
     input.corkQueued = false;
 
-    // ---- Pose selection (manual; no atlas needed) ----
+    // ---- Pose selection ----
     if (this.isDashing) {
-      this.setTexture('player_dash');
+      this.setPose('player_dash');
     } else if (!grounded) {
-      this.setTexture(body.velocity.y < -20 ? 'player_jump' : 'player_fall');
+      this.setPose(body.velocity.y < -20 ? 'player_jump' : 'player_fall');
     } else if (this.corkPoseTimer > 0) {
-      this.setTexture('player_corkshot');
+      this.setPose('player_corkshot');
     } else if (Math.abs(body.velocity.x) > 10) {
       this.runFrameTimer += delta;
       if (this.runFrameTimer > 110) {
         this.runFrameTimer = 0;
         this.runFrame = !this.runFrame;
       }
-      this.setTexture(this.runFrame ? 'player_run2' : 'player_run1');
+      this.setPose(this.runFrame ? 'player_run2' : 'player_run1');
     } else {
-      this.setTexture('player_idle');
+      this.setPose('player_idle');
     }
 
-    // ---- shield / boost tint (skip while dashing, which has its own tint) ----
+    // ---- tints ----
     if (!this.isDashing) {
       if (this.shielded) this.setTint(0xc23b4a);
       else if (time < this.rapidUntil) this.setTint(0xe9b949);
@@ -179,7 +177,7 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
       else this.clearTint();
     }
 
-    // ---- i-frame blink (damage only; dash dodge is silent) ----
+    // ---- i-frame blink ----
     if (time < this.invulnUntil) {
       this.setAlpha(Math.floor(time / 80) % 2 ? 0.35 : 1);
     } else {
@@ -187,29 +185,17 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     }
   }
 
-  /** Quick squash/stretch that always settles back to the authored scale. */
-  private squash(sx: number, sy: number) {
-    this.scene.tweens.killTweensOf(this);
-    this.setScale(sx, sy);
-    this.scene.tweens.add({
-      targets: this,
-      scaleX: this.baseScaleX,
-      scaleY: this.baseScaleY,
-      duration: 130,
-      ease: 'Quad.out',
-    });
-  }
-
   private fireCork() {
     const cork = this.projectiles.get(
       this.x + this.facing * 16,
-      this.y - 2,
+      this.y - 6,
       'cork_shot'
     ) as Phaser.Physics.Arcade.Image | null;
     if (!cork) return;
-    cork.setActive(true).setVisible(true).setScale(0.5);
+    cork.setActive(true).setVisible(true);
     const body = cork.body as Phaser.Physics.Arcade.Body;
     body.enable = true;
+    fitSprite(cork, DISPLAY_H.cork_shot, 0, 0, 'full');
     body.setAllowGravity(false);
     cork.setVelocity(this.facing * C.CORK_SPEED, 0);
     cork.setFlipX(this.facing < 0);
@@ -217,11 +203,9 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     this.onCork?.();
   }
 
-  /** Apply one hit. Returns true if the hit landed (not invulnerable/shielded/dashing). */
   takeDamage(time: number, fromX: number): boolean {
     if (time < this.invulnUntil || time < this.dashInvulnUntil || this.isDashing) return false;
 
-    // Red Blend Shield absorbs the hit instead of costing health.
     if (this.shielded) {
       this.shielded = false;
       this.invulnUntil = time + 600;
@@ -234,8 +218,7 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
 
     this.health -= 1;
     this.invulnUntil = time + C.PLAYER_INVULN_MS;
-    this.setTexture('player_hurt');
-    // knockback away from the source
+    this.setPose('player_hurt');
     const body = this.body as Phaser.Physics.Arcade.Body;
     const dir = this.x < fromX ? -1 : 1;
     body.setVelocity(dir * 220, -260);

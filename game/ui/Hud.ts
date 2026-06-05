@@ -23,19 +23,19 @@ export default class Hud {
         .image(20 + i * 28, 24, 'glass_full')
         .setScrollFactor(0)
         .setDepth(d)
-        .setScale(0.45);
+        .setDisplaySize(20, 30);
       this.glasses.push(img);
     }
 
     // cork counter
-    scene.add.image(22, 58, 'cork').setScrollFactor(0).setDepth(d).setScale(0.45);
+    scene.add.image(22, 58, 'cork').setScrollFactor(0).setDepth(d).setDisplaySize(15, 22);
     this.corkText = scene.add
       .text(36, 50, 'x 0', { fontFamily: 'monospace', fontSize: '18px', color: '#f3e7d3' })
       .setScrollFactor(0)
       .setDepth(d);
 
     // bottle counter
-    scene.add.image(GAME_WIDTH - 70, 24, 'bottle').setScrollFactor(0).setDepth(d).setScale(0.35);
+    scene.add.image(GAME_WIDTH - 70, 24, 'bottle').setScrollFactor(0).setDepth(d).setDisplaySize(11, 31);
     this.bottleText = scene.add
       .text(GAME_WIDTH - 56, 14, '0/3', { fontFamily: 'monospace', fontSize: '18px', color: '#f3e7d3' })
       .setScrollFactor(0)

@@ -61,7 +61,7 @@ export default class FinalBossScene extends BaseLevelScene {
 
     // the Sour Sommelier
     this.boss = new Boss(this, C.GAME_WIDTH / 2, 230);
-    this.boss.setTexture('boss_p1'); // phase-1 portrait
+    this.boss.setTexture('boss_p1'); this.boss.refit();
     this.boss.projectiles = this.bossProjectiles;
     this.boss.onPhaseChange = (p) => this.onPhaseChange(p);
     this.boss.onDefeated = () => this.bossDefeated();
@@ -128,7 +128,7 @@ export default class FinalBossScene extends BaseLevelScene {
   // -------------------------------------------------------------------
   private onPhaseChange(phase: BossPhase) {
     // swap to the matching phase artwork from the bible
-    this.boss.setTexture(`boss_p${phase}`);
+    this.boss.setTexture(`boss_p`); this.boss.refit();
     const labels: Record<BossPhase, string> = {
       1: 'VINE ATTACKS',
       2: 'BARREL CHAOS',

@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { fitSprite, DISPLAY_H } from '../config/fit';
 
 export type CollectibleKind =
   | 'cork'
@@ -23,7 +24,10 @@ export default class Collectible extends Phaser.Physics.Arcade.Image {
     body.setAllowGravity(false);
     body.setImmovable(true);
     this.setDepth(6);
-    this.setScale(0.5);
+    {
+      const h = kind === 'bottle' ? DISPLAY_H.bottle : (kind === 'cork' || kind === 'golden_cork') ? DISPLAY_H.cork : DISPLAY_H.pu;
+      fitSprite(this, h, 0, 0, 'full');
+    }
 
     // gentle bob
     scene.tweens.add({

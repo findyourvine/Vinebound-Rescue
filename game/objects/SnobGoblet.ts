@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import Enemy from './Enemy';
+import { fitSprite, DISPLAY_H } from '../config/fit';
 
 /**
  * Snob Goblet — a sneering wine glass that lobs splashes of bad wine at the
@@ -20,7 +21,7 @@ export default class SnobGoblet extends Enemy {
     const body = this.body as Phaser.Physics.Arcade.Body;
     body.setAllowGravity(false);
     body.setImmovable(true);
-    this.setScale(0.5); body.setSize(48, 80).setOffset(10, 12);
+    fitSprite(this, DISPLAY_H.snob_goblet, 24, 40, 'bottom');
     this.scene.time.delayedCall(20, () => {
       (this.body as Phaser.Physics.Arcade.Body).reset(this.x, this.y - 40);
     });

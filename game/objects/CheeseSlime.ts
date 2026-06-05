@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import Enemy from './Enemy';
+import { fitSprite, DISPLAY_H } from '../config/fit';
 
 /**
  * Moldy Cheese Slime — slow, tanky ground crawler. Takes 3 cork hits, oozes
@@ -20,7 +21,7 @@ export default class CheeseSlime extends Enemy {
     this.minX = x - range;
     this.maxX = x + range;
     const body = this.body as Phaser.Physics.Arcade.Body;
-    this.setScale(0.5); body.setSize(68, 56).setOffset(10, 20);
+    fitSprite(this, DISPLAY_H.cheese_slime, 34, 28, 'bottom');
     body.setAllowGravity(true);
   }
 

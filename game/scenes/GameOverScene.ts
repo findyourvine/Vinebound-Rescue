@@ -54,7 +54,7 @@ export default class GameOverScene extends Phaser.Scene {
       .setOrigin(0.5);
 
     // sad little player sprite
-    this.add.image(GAME_WIDTH / 2, 470, 'player_hurt').setScale(1.2).setAngle(-12);
+    this.add.image(GAME_WIDTH / 2, 470, 'player_hurt').setScale(0.45).setAngle(-12);
 
     this.button(GAME_WIDTH / 2, 560, 'TRY AGAIN', 0x4f8f3a, () => {
       resetGameState();

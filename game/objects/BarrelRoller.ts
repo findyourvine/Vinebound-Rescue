@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import Enemy from './Enemy';
+import { fitSprite, DISPLAY_H } from '../config/fit';
 
 /**
  * Barrel Roller — rolls back and forth between two x bounds. Cannot be stomped
@@ -20,7 +21,7 @@ export default class BarrelRoller extends Enemy {
     this.minX = x - range;
     this.maxX = x + range;
     const body = this.body as Phaser.Physics.Arcade.Body;
-    this.setScale(0.5); body.setSize(68, 68).setOffset(10, 8);
+    fitSprite(this, DISPLAY_H.barrel, 34, 34, 'bottom');
     body.setAllowGravity(true);
     body.setBounce(0, 0);
     if (cracked) this.setTint(0xb060d0); // purple-stained = dash-destroyable

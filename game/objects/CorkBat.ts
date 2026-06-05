@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import Enemy from './Enemy';
+import { fitSprite, DISPLAY_H } from '../config/fit';
 
 /**
  * Cork Bat — flies in a lazy sine wave and drifts toward the player. Can be
@@ -18,7 +19,7 @@ export default class CorkBat extends Enemy {
     this.baseY = y;
     const body = this.body as Phaser.Physics.Arcade.Body;
     body.setAllowGravity(false);
-    this.setScale(0.5); body.setSize(68, 44).setOffset(12, 16);
+    fitSprite(this, DISPLAY_H.cork_bat, 34, 22, 'center');
   }
 
   preUpdate(time: number, delta: number) {

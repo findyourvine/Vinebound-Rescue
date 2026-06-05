@@ -42,7 +42,7 @@ export default class VictoryScene extends Phaser.Scene {
       .setOrigin(0.5);
 
     // hero pose
-    const hero = this.add.image(GAME_WIDTH / 2, 340, 'player_idle').setScale(1.3);
+    const hero = this.add.image(GAME_WIDTH / 2, 340, 'player_idle').setScale(0.51);
     this.tweens.add({ targets: hero, y: 332, duration: 1200, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
 
     this.add
