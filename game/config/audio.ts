@@ -78,6 +78,7 @@ class AudioKit {
   }) {
     const ctx = this.ensure();
     if (!ctx || !this.sfxGain || this.muted) return;
+    try {
     const t0 = ctx.currentTime + (opts.delay ?? 0);
     const osc = ctx.createOscillator();
     const g = ctx.createGain();
@@ -93,9 +94,11 @@ class AudioKit {
     g.connect(this.sfxGain);
     osc.start(t0);
     osc.stop(t0 + opts.dur + 0.02);
+    } catch { /* ignore */ }
   }
 
   private noise(dur: number, vol = 0.3, hp = 600) {
+    try {
     const ctx = this.ensure();
     if (!ctx || !this.sfxGain || this.muted) return;
     const t0 = ctx.currentTime;
@@ -114,12 +117,21 @@ class AudioKit {
     filter.connect(g);
     g.connect(this.sfxGain);
     src.start(t0);
+    } catch { /* ignore */ }
   }
 
   // -------------------------------------------------------------------
   // Named SFX
   // -------------------------------------------------------------------
   sfx(name: string) {
+    try {
+      this.sfxImpl(name);
+    } catch {
+      /* audio must never crash the game loop */
+    }
+  }
+
+  private sfxImpl(name: string) {
     switch (name) {
       case 'jump':
         this.tone({ freq: 320, slideTo: 620, dur: 0.16, type: 'square', vol: 0.32 });
@@ -228,6 +240,7 @@ class AudioKit {
   private musicNote(freq: number, dur: number, type: Wave, vol: number) {
     const ctx = this.ensure();
     if (!ctx || !this.musicGain) return;
+    try {
     const t0 = ctx.currentTime;
     const osc = ctx.createOscillator();
     const g = ctx.createGain();
@@ -240,6 +253,7 @@ class AudioKit {
     g.connect(this.musicGain);
     osc.start(t0);
     osc.stop(t0 + dur + 0.02);
+    } catch { /* ignore */ }
   }
 
   stopMusic() {
